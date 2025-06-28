@@ -14,25 +14,27 @@ from tools.arithmatic_tool import ArithmeticTool
 
 class GraphBuilder():
     
-    def __init__(self,model_provider:str = "groq"):
-        self.model_loader = ModelLoader()
+    def __init__(self,model_provider: str = "groq"):
+        self.model_loader = ModelLoader(model_provider=model_provider)
         self.llm = self.model_loader.load_llm()
         
-        self.tools=[]
-        self.weather_tool = WeatherTool()
-        self.place_search_tool = PlaceSearchTool()
-        self.currency_conversion_tool = CurrencyConversionTool()
-        self.calculator_tool = CalculatorTool()
+        self.tools = []
         
-        self.llm_with_tools = self.llm.bind_tools(
-            self.weather_tool,
-            self.place_search_tool,
-            self.currency_conversion_tool,
-            self.calculator_tool       
-            )
+        self.weather_tools = WeatherTool()
+        self.place_search_tools = PlaceSearchTool()
+        self.calculator_tools = CalculatorTool()
+        self.currency_converter_tools = CurrencyConversionTool()
+        
+        self.tools.extend([* self.weather_tools.weather_tool_list, 
+                           * self.place_search_tools.place_search_tool_list,
+                           * self.calculator_tools.calculator_tool_list,
+                           * self.currency_converter_tools.currency_converter_tool_list])
+        
+        self.llm_with_tools = self.llm.bind_tools(tools=self.tools)
+        
+        self.graph = None
         
         self.system_prompt = SYSTEM_PROMPT
-        self.graph = StateGraph()
     
     def agent_function(self,state:MessagesState):
         """Main agent function"""
